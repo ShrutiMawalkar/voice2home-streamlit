@@ -1,28 +1,19 @@
 import streamlit as st
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from diffusers import StableDiffusionPipeline
 import torch
 
-st.set_page_config(page_title="Voice2Home AI", page_icon="🏡")
+st.set_page_config(page_title="🏡 Voice2Home AI", page_icon="🏡")
 
-st.title("🏡 Voice2Home AI (Text Version)")
-st.markdown("Type your **dream home layout idea**, and get an **AI-generated layout description** using GPT-Neo!")
+st.title("🏡 Voice2Home AI – Generate 2D Home Layout")
+st.markdown("Describe your dream home, and get a 2D layout generated using AI!")
 
-# User text input instead of voice
-prompt = st.text_area("📝 Enter your home design idea (English or Hindi):", placeholder="e.g., I want a 3BHK with open kitchen, garden, and balcony...")
+prompt = st.text_area("Enter your home design idea (English only):", placeholder="e.g. A 2BHK flat with an open kitchen, 2 bathrooms, and a balcony...")
 
-if st.button("Generate Layout") and prompt.strip() != "":
-    st.subheader("🏗️ Generating Home Layout...")
-    st.text("Loading GPT-Neo model...")
+if st.button("Generate 2D Layout") and prompt.strip():
+    st.subheader("🎨 Generating layout...")
+    pipe = StableDiffusionPipeline.from_pretrained("runwayml/stable-diffusion-v1-5").to("cuda")
 
-    tokenizer = AutoTokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
-    llm_model = AutoModelForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")
-
-    inputs = tokenizer(prompt, return_tensors="pt")
-    output = llm_model.generate(**inputs, max_new_tokens=150, temperature=0.9, do_sample=True)
-
-    layout_description = tokenizer.decode(output[0], skip_special_tokens=True)
-
-    st.success("🏠 AI-Generated Layout Description:")
-    st.write(layout_description)
+    image = pipe(prompt).images[0]
+    st.image(image, caption="🖼️ AI-Generated 2D Layout")
 else:
-    st.info("Enter your idea and click the button to generate layout.")
+    st.info("Enter a design prompt and click to generate layout.")
